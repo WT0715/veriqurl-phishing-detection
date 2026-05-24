@@ -1,0 +1,2 @@
+model,training_time_s,epochs,batch_size,learning_rate,embed_dim,num_channels,kernel_size,dropout,best_val_f1
+TCN,6433.383137702942,10,128,0.0005,32,64,3,0.2,0.9976733364355514

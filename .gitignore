@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+~$*
+*.tmp
+
+.venv/
+venv/
+env/
+
+.DS_Store
+
+# Large datasets and generated training arrays
+data/external/
+data/raw/
+data/processed/features/
+data/processed/splits/
+data/processed/kaggle_cleaned.csv
+data/processed/tcn/train_X.npy
+data/processed/tcn/train_y.npy
+data/processed/tcn/val_X.npy
+data/processed/tcn/val_y.npy
+data/processed/tcn/test_X.npy
+data/processed/tcn/test_y.npy
+
+# Keep this file because the Streamlit app needs it
+!data/processed/tcn/char_vocab.json

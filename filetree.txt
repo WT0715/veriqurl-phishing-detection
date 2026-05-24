@@ -1,0 +1,68 @@
+Phishing Detection/
+├─ data/
+│  ├─ external/
+│  │  └─ PhiUSIIL_Phishing_URL_Dataset.csv
+│  ├─ processed/
+│  │  ├─ features/
+│  │  │  ├─ test_features.csv
+│  │  │  ├─ train_features.csv
+│  │  │  └─ val_features.csv
+│  │  ├─ splits/
+│  │  │  ├─ test.csv
+│  │  │  ├─ train.csv
+│  │  │  └─ val.csv
+│  │  ├─ tcn/
+│  │  │  ├─ char_vocab.json
+│  │  │  ├─ test_X.npy
+│  │  │  ├─ test_y.npy
+│  │  │  ├─ train_X.npy
+│  │  │  ├─ train_y.npy
+│  │  │  ├─ val_X.npy
+│  │  │  └─ val_y.npy
+│  │  └─ kaggle_cleaned.csv
+│  └─ raw/
+│     └─ phishing_simple.csv
+├─ models/
+│  ├─ random_forest_model.pkl
+│  └─ tcn_model.pt
+├─ notebooks/
+├─ reports/
+│  └─ case_study_results.md
+├─ results/
+│  ├─ model_comparison.csv
+│  ├─ rf_feature_importance.csv
+│  ├─ rf_metrics.csv
+│  ├─ tcn_confusion_matrix.csv
+│  ├─ tcn_metrics.csv
+│  ├─ tcn_training_history.csv
+│  └─ tcn_training_summary.csv
+├─ src/
+│  ├─ __pycache__/
+│  │  ├─ explanation_rules.cpython-313.pyc
+│  │  └─ predict_compare.cpython-313.pyc
+│  ├─ analyze_rf.py
+│  ├─ check_data_quality.py
+│  ├─ compare_models.py
+│  ├─ evaluate_tcn.py
+│  ├─ explanation_rules.py
+│  ├─ feature_extraction.py
+│  ├─ inspect_data.py
+│  ├─ predict_compare.py
+│  ├─ predict_rf_explained_backup.py
+│  ├─ predict_rf_explained.py
+│  ├─ predict_rf.py
+│  ├─ predict_tcn_explained.py
+│  ├─ prepare_tcn_data.py
+│  ├─ preprocess.py
+│  ├─ save_rf_model.py
+│  ├─ split_data.py
+│  ├─ train_rf.py
+│  └─ train_tcn.py
+├─ .gitignore
+├─ ~$ghtweight Phishing Detection planing.docx
+├─ ~WRL0498.tmp
+├─ app.py
+├─ filetree.txt
+├─ Lightweight Phishing Detection planing.docx
+├─ README.md
+└─ requirements.txt
