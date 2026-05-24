@@ -16,3 +16,9 @@ VeriqURL is a lightweight URL-based phishing detection and awareness prototype.
 
 ```bash
 streamlit run app.py
+
+## Live Demo
+
+The deployed VeriqURL prototype is available at:
+
+https://veriqurl-phishing-detection.streamlit.app/
