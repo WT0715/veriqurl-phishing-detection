@@ -1,0 +1,5 @@
+candidate_high_risk_threshold,low_risk_count,suspicious_count,high_risk_count,low_risk_phishing,suspicious_true_phishing,high_risk_true_phishing,high_risk_false_positive
+0.6,20299,66,14940,73,65,14940,0
+0.7,20299,78,14928,73,77,14928,0
+0.8,20299,90,14916,73,89,14916,0
+0.9,20299,114,14892,73,113,14892,0

@@ -2,6 +2,11 @@ import re
 import math
 from urllib.parse import urlparse
 
+# ============================================================
+# Thresholds for risk levels based on phishing probability
+# ============================================================
+PHISHING_THRESHOLD = 0.50
+HIGH_RISK_THRESHOLD = 0.80
 
 # ============================================================
 # 1. Suspicious words used ONLY for model-compatible RF features
@@ -426,9 +431,9 @@ def get_risk_level(phishing_probability: float) -> str:
     """
     Convert phishing probability into a simple risk level.
     """
-    if phishing_probability >= 0.80:
+    if phishing_probability >= HIGH_RISK_THRESHOLD:
         return "High Risk"
-    elif phishing_probability >= 0.50:
+    elif phishing_probability >= PHISHING_THRESHOLD:
         return "Suspicious"
     else:
         return "Low Risk"
