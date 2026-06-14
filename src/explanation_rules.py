@@ -538,45 +538,115 @@ def generate_explanations(url: str, indicators: dict) -> list:
     return reasons
 
 
-def generate_recommendation(risk_level: str) -> str:
+def generate_awareness_guidance(risk_level: str, indicators: dict) -> list:
     """
-    Generate user action recommendation based on risk level.
+    Generate evidence-based awareness guidance.
+
+    The guidance is not only based on the risk level.
+    It is generated from the detected URL indicators so that the message
+    is more specific to the submitted URL.
+
+    Output:
+        A list of awareness guidance messages.
     """
+    guidance = []
+
+    # 1. Strong risk-level action
     if risk_level == "High Risk":
-        return "Do not open the link or enter any personal, banking, or login information."
+        guidance.append(
+            "Do not open the link or enter login, banking, or personal information. "
+            "If the link was received through email, SMS, or messaging apps, report or delete the message."
+        )
+
     elif risk_level == "Suspicious":
-        return "Verify the domain carefully before proceeding, and avoid entering sensitive information."
+        guidance.append(
+            "Pause before opening this link. Verify the request through the official website "
+            "or a known contact method instead of trusting the link directly."
+        )
+
     else:
-        return "The URL appears low risk based on lexical indicators, but you should still verify the website before trusting it."
+        guidance.append(
+            "No strong suspicious lexical pattern was detected, but users should still check "
+            "the registered domain before entering sensitive information."
+        )
 
-
-def generate_awareness_tip(url: str, indicators: dict) -> str:
-    """
-    Generate one awareness tip based on the most relevant indicator.
-    """
+    # 2. Indicator-specific awareness guidance
     if indicators["brand_in_unusual_host"] == 1:
-        return "A familiar brand name inside a strange domain does not mean the website is official. Always check the real registered domain."
+        guidance.append(
+            "A familiar brand name inside an unusual domain does not prove that the website is official. "
+            "Check the registered domain carefully rather than trusting familiar brand words in the URL."
+        )
 
-    if indicators["has_shortener_domain"] == 1:
-        return "Shortened URLs can hide the final destination. Be careful when the sender or context is not trusted."
-
-    if indicators["suspicious_word_count"] > 0:
-        return "Be careful when a URL combines words like login, verify, secure, update, or account with an unusual domain."
+    if indicators["brand_in_path"] == 1:
+        guidance.append(
+            "A brand name appearing in the path does not mean the link belongs to that brand. "
+            "The registered domain is more important than brand words appearing after the first slash."
+        )
 
     if indicators["has_https"] == 0:
-        return "A missing HTTPS connection can be a warning sign, but HTTPS alone does not guarantee that a website is legitimate."
+        guidance.append(
+            "Avoid entering sensitive information on pages that do not use HTTPS. "
+            "However, remember that HTTPS alone does not guarantee that a website is legitimate."
+        )
 
-    if indicators["subdomain_count"] >= 2:
-        return "Attackers may use long or confusing subdomains to make a URL look related to a trusted brand."
+    if indicators["suspicious_word_count"] > 0:
+        words = ", ".join(indicators["matched_suspicious_words"][:6])
+        guidance.append(
+            f"Be careful when a URL contains account, login, verification, update, or security-related wording "
+            f"such as: {words}. Verify the request through the official website."
+        )
+
+    if indicators["has_shortener_domain"] == 1:
+        guidance.append(
+            "Shortened URLs can hide the final destination. Avoid opening shortened links when the sender "
+            "or context is not trusted."
+        )
 
     if indicators["has_ip_address"] == 1:
-        return "Legitimate public services usually use readable domain names rather than raw IP addresses."
+        guidance.append(
+            "A raw IP address can hide the organisation behind the website. Public services usually use "
+            "recognisable domain names instead of direct IP-based URLs."
+        )
+
+    if indicators["at_count"] > 0:
+        guidance.append(
+            "The '@' symbol can mislead users because the real destination appears after the '@' symbol. "
+            "Check the actual domain before trusting the link."
+        )
+
+    if indicators["domain_hyphen_count"] >= 2 or indicators["hyphen_count"] >= 3:
+        guidance.append(
+            "Multiple hyphens or punctuation in a domain can be used to imitate legitimate brand names. "
+            "Check whether the registered domain is really the official website."
+        )
+
+    if indicators["subdomain_count"] >= 2:
+        guidance.append(
+            "Multiple subdomains can make a URL look related to a trusted service even when the registered "
+            "domain is different. Focus on the registered domain."
+        )
 
     if indicators["url_length"] >= 60:
-        return "Very long URLs can hide the true destination. Focus on the registered domain before clicking."
+        guidance.append(
+            "Long URLs can hide the real destination or suspicious path content. Review the domain before clicking."
+        )
 
-    return "Always check the full domain name carefully, not just familiar words appearing inside the URL."
+    if indicators["has_tld_in_path"] == 1:
+        guidance.append(
+            "A domain-like string inside the path may be used to distract users from the real registered domain."
+        )
 
+    if indicators["url_entropy"] >= 4.8 or (
+        indicators["path_entropy"] >= 4.2 and indicators["path_length"] >= 20
+    ):
+        guidance.append(
+            "Random-looking URL strings may indicate generated or obfuscated links. Treat the URL carefully "
+            "if the sender or context is unexpected."
+        )
+
+    # Limit output so the page does not become too long.
+    # The first item is always the risk-level action, followed by the most relevant indicators.
+    return guidance[:5]
 
 def build_explanation_result(url: str, phishing_probability: float) -> dict:
     """
@@ -592,13 +662,11 @@ def build_explanation_result(url: str, phishing_probability: float) -> dict:
     indicators = extract_explanation_indicators(url)
     risk_level = get_risk_level(phishing_probability)
     reasons = generate_explanations(url, indicators)
-    recommendation = generate_recommendation(risk_level)
-    awareness_tip = generate_awareness_tip(url, indicators)
+    awareness_guidance = generate_awareness_guidance(risk_level, indicators)
 
     return {
         "risk_level": risk_level,
         "reasons": reasons,
-        "recommendation": recommendation,
-        "awareness_tip": awareness_tip,
+        "awareness_guidance": awareness_guidance,
         "indicators": indicators,
     }

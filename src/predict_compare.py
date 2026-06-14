@@ -299,11 +299,9 @@ def main():
     for i, reason in enumerate(shared_explanation["reasons"], start=1):
         print(f"{i}. {reason}")
 
-    print("\n===== Recommendation =====")
-    print(shared_explanation["recommendation"])
-
-    print("\n===== Awareness Tip =====")
-    print(shared_explanation["awareness_tip"])
+    print("\n===== Awareness Guidance =====")
+    for i, item in enumerate(shared_explanation["awareness_guidance"], start=1):
+        print(f"{i}. {item}")
 
     print("\n===== RF Model Features =====")
     for key, value in rf_result["features"].items():

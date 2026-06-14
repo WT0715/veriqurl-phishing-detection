@@ -232,11 +232,10 @@ def display_explanation(explanation: dict):
         for i, reason in enumerate(explanation["reasons"], start=1):
             st.write(f"{i}. {reason}")
 
-        st.markdown("### Recommendation")
-        st.info(explanation["recommendation"])
+        st.markdown("### Awareness Guidance")
 
-        st.markdown("### Awareness Tip")
-        st.success(explanation["awareness_tip"])
+        for i, item in enumerate(explanation["awareness_guidance"], start=1):
+            st.success(f"{i}. {item}")
 
 
 def display_lightweight_comparison():
