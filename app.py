@@ -222,7 +222,7 @@ def display_combined_result(final_decision: dict):
             st.markdown(risk_badge(final_decision["final_risk"]), unsafe_allow_html=True)
 
 
-def display_explanation(explanation: dict):
+def display_explanation(explanation: dict, risk_level: str):
     """
     Display shared explanation, recommendation, and awareness tip.
     """
@@ -235,7 +235,13 @@ def display_explanation(explanation: dict):
         st.markdown("### Awareness Guidance")
 
         for i, item in enumerate(explanation["awareness_guidance"], start=1):
-            st.success(f"{i}. {item}")
+            message = f"{i}. {item}"
+            if risk_level == "High Risk":
+                st.error(message)
+            elif risk_level == "Suspicious":
+                st.warning(message)
+            else:
+                st.info(message)
 
 
 def display_lightweight_comparison():
@@ -346,7 +352,7 @@ with tab_analyse:
             display_model_result("Random Forest Result", rf_result)
             display_model_result("TCN Result", tcn_result)
             display_combined_result(final_decision)
-            display_explanation(shared_explanation)
+            display_explanation(shared_explanation, final_decision["final_risk"])
 
             with st.expander("Show RF Model Features"):
                 st.json(rf_result["features"])
