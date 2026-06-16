@@ -11,7 +11,7 @@ env/
 
 .DS_Store
 
-*docx
+*.docx
 
 # Large datasets and generated training arrays
 data/external/
