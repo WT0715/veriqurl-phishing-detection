@@ -32,6 +32,8 @@ Phishing Detection/
 │  ├─ model_comparison.csv
 │  ├─ rf_feature_importance.csv
 │  ├─ rf_metrics.csv
+│  ├─ risk_threshold_distribution.csv
+│  ├─ risk_threshold_validation.csv
 │  ├─ tcn_confusion_matrix.csv
 │  ├─ tcn_metrics.csv
 │  ├─ tcn_training_history.csv
@@ -57,7 +59,8 @@ Phishing Detection/
 │  ├─ save_rf_model.py
 │  ├─ split_data.py
 │  ├─ train_rf.py
-│  └─ train_tcn.py
+│  ├─ train_tcn.py
+│  └─ validate_risk_thresholds.py
 ├─ .gitignore
 ├─ ~$ghtweight Phishing Detection planing.docx
 ├─ ~WRL0498.tmp
