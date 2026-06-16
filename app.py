@@ -224,7 +224,7 @@ def display_combined_result(final_decision: dict):
 
 def display_explanation(explanation: dict, risk_level: str):
     """
-    Display shared explanation, recommendation, and awareness tip.
+    Display shared explanation and awareness guidance.
     """
     with st.container(border=True):
         st.subheader("Why It Was Flagged")
@@ -313,7 +313,7 @@ with tab_analyse:
 
     st.write(
         "Paste a URL below. The system will run both Random Forest and TCN, "
-        "then generate a shared explanation and awareness tip."
+        "then generate a shared explanation and evidence-based awareness guidance."
     )
 
     default_url = "https://www.google.com"
@@ -403,8 +403,7 @@ with tab_about:
 
         - risk level,
         - human-readable reasons,
-        - recommendation,
-        - awareness tip.
+        - evidence-based awareness guidance.
 
         The prototype does not visit the webpage and does not collect usernames,
         passwords, banking details, or personal data.
