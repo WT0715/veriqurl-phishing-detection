@@ -2,6 +2,7 @@ import sys
 import re
 from pathlib import Path
 from urllib.parse import urlparse
+import base64
 
 import pandas as pd
 import streamlit as st
@@ -10,7 +11,18 @@ import torch
 # Allow app.py to import files from src/
 ROOT_DIR = Path(__file__).parent
 SRC_DIR = ROOT_DIR / "src"
+ASSETS_DIR = ROOT_DIR / "assets"
+LOGO_PATH = ASSETS_DIR / "VeriqURL_logo.png"
 sys.path.append(str(SRC_DIR))
+
+#=========================
+# For logo use
+def image_to_base64(image_path: Path) -> str:
+    """
+    Convert local image to base64 so it can be embedded inside custom HTML.
+    """
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
 
 from predict_compare import (
     load_rf_model,
@@ -26,7 +38,7 @@ from explanation_rules import build_explanation_result
 
 st.set_page_config(
     page_title="VeriqURL",
-    page_icon="🛡️",
+    page_icon=str(LOGO_PATH),
     layout="wide",
 )
 
@@ -96,7 +108,7 @@ st.markdown(
     .subtitle {
         color: var(--muted);
         font-size: 1rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0;
     }
 
     .brand-box {
@@ -293,7 +305,8 @@ def display_url_component_visualizer(url: str, indicators: dict):
         st.subheader("URL Component Visualizer")
 
         st.caption(
-            "This section helps users understand where the real registered domain, path, and query appear in the URL."
+            "This section helps users understand where the scheme, subdomain, registered domain, path, and query appear in the URL. "
+            "Highlighted words are awareness indicators only and do not directly change the model prediction."
         )
 
         component_df = pd.DataFrame(
@@ -446,17 +459,40 @@ def display_lightweight_comparison():
 # Main App
 # =========================
 
-st.markdown(
-    """
-    <div class="brand-box">
-        <div class="main-title">🛡️ VeriqURL</div>
-        <div class="subtitle">
-            Lightweight URL-based phishing detection and awareness tool using Random Forest and TCN.
+if LOGO_PATH.exists():
+    logo_base64 = image_to_base64(LOGO_PATH)
+
+    st.markdown(
+        f"""
+        <div class="brand-box" style="
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+        ">
+            <img src="data:image/png;base64,{logo_base64}" 
+                 style="width: 95px; height: 95px; object-fit: contain;">
+            <div>
+                <div class="main-title">VeriqURL</div>
+                <div class="subtitle">
+                    Lightweight URL-based phishing detection and awareness tool using Random Forest and TCN.
+                </div>
+            </div>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(
+        """
+        <div class="brand-box">
+            <div class="main-title">🛡️ VeriqURL</div>
+            <div class="subtitle">
+                Lightweight URL-based phishing detection and awareness tool using Random Forest and TCN.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 tab_analyse, tab_metrics, tab_about = st.tabs(
     ["Analyse URL", "Model & Lightweight Metrics", "About"]
