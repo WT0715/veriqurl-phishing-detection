@@ -1,5 +1,7 @@
 import sys
+import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pandas as pd
 import streamlit as st
@@ -27,6 +29,41 @@ st.set_page_config(
     page_icon="🛡️",
     layout="wide",
 )
+
+#=========================
+# Session State for URL Analysis History
+if "analysis_history" not in st.session_state:
+    st.session_state.analysis_history = []
+
+def add_to_session_history(url: str, final_decision: dict):
+    """
+    Store recent analysis results in Streamlit session only.
+    This does not write to a database or external file.
+    """
+    history_item = {
+        "URL": url,
+        "Final Label": final_decision["final_label"],
+        "Final Risk": final_decision["final_risk"],
+        "Average Phishing Probability": round(
+            final_decision["average_phishing_probability"], 4
+        ),
+    }
+
+    st.session_state.analysis_history.insert(0, history_item)
+
+    # Keep only latest 5 records
+    st.session_state.analysis_history = st.session_state.analysis_history[:5]
+
+def display_session_history():
+    """
+    Display session-only URL analysis history.
+    """
+    if not st.session_state.analysis_history:
+        st.info("No URL has been analysed in this session yet.")
+        return
+
+    history_df = pd.DataFrame(st.session_state.analysis_history)
+    st.dataframe(history_df, hide_index=True, use_container_width=True)
 
 
 # =========================
@@ -173,6 +210,124 @@ def risk_badge(risk_level: str) -> str:
         return '<span class="risk-suspicious">Suspicious</span>'
     return '<span class="risk-low">Low Risk</span>'
 
+def parse_url_components(url: str) -> dict:
+    """
+    Parse URL into user-friendly components for awareness display.
+    """
+    clean_url = url.strip()
+
+    if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", clean_url):
+        parse_target = "http://" + clean_url
+    else:
+        parse_target = clean_url
+
+    parsed = urlparse(parse_target)
+
+    domain = parsed.netloc.lower()
+
+    if "@" in domain:
+        domain = domain.split("@")[-1]
+
+    if ":" in domain:
+        domain = domain.split(":")[0]
+
+    labels = [part for part in domain.split(".") if part]
+
+    if len(labels) >= 2:
+        registered_domain = ".".join(labels[-2:])
+        subdomain = ".".join(labels[:-2]) if len(labels) > 2 else "-"
+    else:
+        registered_domain = domain if domain else "-"
+        subdomain = "-"
+
+    return {
+        "scheme": parsed.scheme if parsed.scheme else "-",
+        "subdomain": subdomain,
+        "domain": domain if domain else "-",
+        "registered_domain": registered_domain,
+        "path": parsed.path if parsed.path else "-",
+        "query": parsed.query if parsed.query else "-",
+    }
+
+
+def highlight_url_indicators(url: str, indicators: dict) -> str:
+    """
+    Highlight detected suspicious words and brand words inside the URL.
+    This is for visual awareness only and does not affect prediction.
+    """
+    highlighted_url = url
+
+    words_to_highlight = []
+
+    words_to_highlight.extend(indicators.get("matched_brand_words", []))
+    words_to_highlight.extend(indicators.get("matched_suspicious_words", []))
+
+    # Longer words first to avoid partial replacement issues
+    words_to_highlight = sorted(set(words_to_highlight), key=len, reverse=True)
+
+    for word in words_to_highlight:
+        if not word:
+            continue
+
+        pattern = re.compile(re.escape(word), re.IGNORECASE)
+
+        highlighted_url = pattern.sub(
+            lambda m: (
+                f"<mark style='background-color:#fde68a; "
+                f"padding:2px 4px; border-radius:4px;'>"
+                f"{m.group(0)}</mark>"
+            ),
+            highlighted_url
+        )
+
+    return highlighted_url
+
+
+def display_url_component_visualizer(url: str, indicators: dict):
+    """
+    Display URL components and highlight suspicious / brand-related tokens.
+    """
+    components = parse_url_components(url)
+
+    with st.container(border=True):
+        st.subheader("URL Component Visualizer")
+
+        st.caption(
+            "This section helps users understand where the real registered domain, path, and query appear in the URL."
+        )
+
+        component_df = pd.DataFrame(
+            [
+                {"Component": "Scheme", "Value": components["scheme"]},
+                {"Component": "Subdomain", "Value": components["subdomain"]},
+                {"Component": "Full domain / host", "Value": components["domain"]},
+                {"Component": "Approx. registered domain", "Value": components["registered_domain"]},
+                {"Component": "Path", "Value": components["path"]},
+                {"Component": "Query", "Value": components["query"]},
+            ]
+        )
+
+        st.dataframe(component_df, hide_index=True, use_container_width=True)
+
+        st.markdown("#### Highlighted URL")
+        highlighted_url = highlight_url_indicators(url, indicators)
+
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid rgba(15,23,42,.12);
+                border-radius:12px;
+                padding:0.85rem;
+                background:#f8fafc;
+                overflow-wrap:anywhere;
+                font-family:monospace;
+                font-size:0.95rem;
+            ">
+                {highlighted_url}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 def display_model_result(title: str, result: dict):
     """
@@ -349,10 +504,13 @@ with tab_analyse:
 
             st.markdown("---")
 
+            add_to_session_history(clean_url, final_decision)
+
             display_model_result("Random Forest Result", rf_result)
             display_model_result("TCN Result", tcn_result)
             display_combined_result(final_decision)
             display_explanation(shared_explanation, final_decision["final_risk"])
+            display_url_component_visualizer(clean_url, shared_explanation["indicators"])
 
             with st.expander("Show RF Model Features"):
                 st.json(rf_result["features"])
@@ -363,6 +521,10 @@ with tab_analyse:
 
             with st.expander("Show Explanation Indicators"):
                 st.json(shared_explanation["indicators"])
+
+    st.markdown("---")
+    st.subheader("Session-only Analysis History")
+    display_session_history()
 
 
 with tab_metrics:
@@ -405,8 +567,15 @@ with tab_about:
         - human-readable reasons,
         - evidence-based awareness guidance.
 
+        Additional awareness features include:
+
+        - URL component visualizer,
+        - highlighted suspicious or brand-related URL tokens,
+        - session-only analysis history.
+
         The prototype does not visit the webpage and does not collect usernames,
-        passwords, banking details, or personal data.
+        passwords, banking details, or personal data. The session-only history is
+        not saved to a database.
         """
     )
 
